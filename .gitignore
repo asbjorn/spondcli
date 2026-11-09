@@ -1,0 +1,7 @@
+# Build output
+/spondcli
+/bin/
+/dist/
+
+# Member exports contain personal data; never commit them.
+*.csv
