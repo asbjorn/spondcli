@@ -650,7 +650,7 @@ func (c *Client) send(
 		return fmt.Errorf("reading %s response: %w", path, err)
 	}
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return &APIError{Status: resp.StatusCode, Body: string(data)}
+		return &APIError{Status: resp.StatusCode, Body: CleanText(string(data))}
 	}
 	if out == nil {
 		return nil // caller does not need the body (e.g. DELETE)
@@ -658,6 +658,7 @@ func (c *Client) send(
 	if err := json.Unmarshal(data, out); err != nil {
 		return fmt.Errorf("decoding %s response: %w", path, err)
 	}
+	Sanitize(out)
 	return nil
 }
 

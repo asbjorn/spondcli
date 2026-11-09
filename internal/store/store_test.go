@@ -170,3 +170,11 @@ func TestStoreSyncPages(t *testing.T) {
 		t.Errorf("synced %d posts, want %d", stats.Posts, spondapi.SyncPageSize+3)
 	}
 }
+
+func TestCleanMarkedKeepsMatchMarkers(t *testing.T) {
+	in := "a\x1b[2J " + MarkStart + "hit" + MarkEnd + "\nnext"
+	want := "a[2J " + MarkStart + "hit" + MarkEnd + "\nnext"
+	if got := cleanMarked(in); got != want {
+		t.Errorf("cleanMarked(%q) = %q, want %q", in, got, want)
+	}
+}

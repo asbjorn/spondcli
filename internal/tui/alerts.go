@@ -252,7 +252,9 @@ var (
 
 // renderBoldHTML renders the alert markup: <b> becomes bold, other tags go.
 func renderBoldHTML(s string) string {
-	plain := func(t string) string { return html.UnescapeString(anyTag.ReplaceAllString(t, "")) }
+	plain := func(t string) string {
+		return spondapi.CleanText(html.UnescapeString(anyTag.ReplaceAllString(t, "")))
+	}
 	var b strings.Builder
 	last := 0
 	for _, loc := range boldTag.FindAllStringSubmatchIndex(s, -1) {

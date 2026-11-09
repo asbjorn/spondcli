@@ -16,6 +16,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode"
 
 	_ "modernc.org/sqlite" // pure Go, so builds for Windows, macOS and Linux need no C compiler
 
@@ -446,6 +447,13 @@ func (s *Store) Search(ctx context.Context, groupID, subgroupID, query string) (
 			h.Comments = PlainHit(h.Post).Comments // never expected; fall back to unmarked text
 		}
 		h.Snippet = strings.ReplaceAll(h.Snippet, commentSep, " ")
+		// The cache may predate sanitising in the client. Keep the match
+		// markers, which are control characters themselves.
+		spondapi.Sanitize(&h.Post)
+		h.Title, h.Body, h.Snippet = cleanMarked(h.Title), cleanMarked(h.Body), cleanMarked(h.Snippet)
+		for i, c := range h.Comments {
+			h.Comments[i] = cleanMarked(c)
+		}
 		hits = append(hits, h)
 	}
 	return hits, rows.Err()
@@ -465,4 +473,14 @@ func matchQuery(text string) string {
 // Unmark replaces the match markers in s with on and off.
 func Unmark(s, on, off string) string {
 	return strings.NewReplacer(MarkStart, on, MarkEnd, off).Replace(s)
+}
+
+// cleanMarked is spondapi.CleanText that keeps MarkStart and MarkEnd.
+func cleanMarked(s string) string {
+	return strings.Map(func(r rune) rune {
+		if r == '\n' || r == '\t' || r == rune(MarkStart[0]) || r == rune(MarkEnd[0]) || !unicode.IsControl(r) {
+			return r
+		}
+		return -1
+	}, s)
 }
