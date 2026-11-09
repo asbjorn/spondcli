@@ -41,6 +41,41 @@ Exit status: 0 on success, 1 on errors, 2 on a malformed command line.
 Member exports contain personal data. `*.csv` is in `.gitignore` so they are
 not committed by accident.
 
+## Search
+
+The Spond app cannot search posts. Finding the post about the bake sale
+from last spring, or the comment where someone gave the gate code, means
+scrolling back through the whole feed. spondcli makes a group's posts and
+their comments searchable, both from the command line and in the
+interactive UI.
+
+```
+spondcli search -group "Team name" dugnad kiosk
+spondcli search -group "Team name" -subgroup U12 kamp
+```
+
+In the interactive UI, open a group's (or subgroup's) posts and press `/`.
+Results show the matching posts and comments with the matched words
+highlighted. Open a result to read the whole post; `n`/`tab` and
+`N`/`shift+tab` jump between matches, `esc` clears the search.
+
+How it works:
+
+- **Every post, not only the group feed.** Spond leaves subgroup posts out of
+  the group feed, so spondcli downloads the group feed and the feed of every
+  subgroup, with comments, and merges them.
+- **Local and fast.** Posts are stored in a SQLite database with a full-text
+  index (`~/.cache/spondcli/posts.db` on Linux). Searches run locally.
+- **Kept fresh.** The API cannot report which posts changed, so the whole
+  history is downloaded again when the cache is older than 15 minutes, or
+  at once with `-refresh`. That takes only a few requests per group. If the
+  download fails, the old cache is searched with a warning.
+- **Forgiving matching.** Case and accents are ignored (`kafe` finds
+  "Kafé"). Every word must occur, and each word also matches longer words
+  that start with it (`dug` finds "dugnad").
+- **Scoped.** `-subgroup` (or picking a subgroup in the UI) searches only the
+  posts sent to that subgroup.
+
 ## Layout
 
 ```
